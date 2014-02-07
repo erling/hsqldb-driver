@@ -1,0 +1,20 @@
+*target/
+.DS_Store
+
+*.DS_Store
+
+# Eclipse
+*.project
+*.settings/
+*.classpath
+
+# Intellij
+.idea/
+*.iml
+*.ipr
+*.iws
+*.log
+work
+
+atlassian-ide-plugin.xml
+
