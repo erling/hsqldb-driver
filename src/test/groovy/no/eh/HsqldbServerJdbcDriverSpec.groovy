@@ -1,5 +1,7 @@
 package no.eh
 
+import javax.net.ServerSocketFactory
+
 import org.hsqldb.server.ServerConstants
 import spock.lang.Specification
 
@@ -26,7 +28,6 @@ class HsqldbServerJdbcDriverSpec extends Specification {
         given:
         def connectionUrl = "jdbc:hsqldb:mem:testdb"
         Class.forName(driverClassName);
-        HsqldbServerJdbcDriver.stopServer();
 
         when:
         def connection = DriverManager.getConnection(connectionUrl);
@@ -34,21 +35,63 @@ class HsqldbServerJdbcDriverSpec extends Specification {
         then:
         assert connection != null
         assert HsqldbServerJdbcDriver.getServer().getState() == ServerConstants.SERVER_STATE_ONLINE
+
+        cleanup:
+        HsqldbServerJdbcDriver.stopServer();
     }
 
 
-    def "Driver should tolerate url with database names containing : and /"() {
+    def "Driver should tolerate url with database names containing ?, : and /"() {
         given:
-        def connectionUrl = "jdbc:hsqldb:mem:testdb::/"
+        def connectionUrl = "jdbc:hsqldb:mem:testdb::/?host=foo"
         Class.forName(driverClassName);
-        HsqldbServerJdbcDriver.stopServer();
 
         when:
         def connection = DriverManager.getConnection(connectionUrl);
 
         then:
         assert connection != null
+
+        cleanup:
+        HsqldbServerJdbcDriver.stopServer();
     }
 
+
+    def "Loading the driver two times should work" () {
+        given:
+        def connectionUrl = "jdbc:hsqldb:mem:testdb"
+        Class.forName(driverClassName);
+        DriverManager.getConnection(connectionUrl);
+
+        when: "Loading the driver a second time"
+        ClassLoader.getSystemClassLoader().loadClass(driverClassName)
+
+        and: "requesting a connection"
+        def connection = DriverManager.getConnection(connectionUrl);
+
+        then:
+        assert connection != null
+
+        cleanup:
+        HsqldbServerJdbcDriver.stopServer();
+    }
+
+    def "Driver should start server on next available port"() {
+        given: "In-memory connection url"
+        def connectionUrl = "jdbc:hsqldb:mem:testdb"
+        Class.forName(driverClassName);
+
+        and: "Default port in use"
+        ServerSocketFactory.getDefault().createServerSocket(ServerConstants.SC_DEFAULT_HSQL_SERVER_PORT)
+
+        when:
+        DriverManager.getConnection(connectionUrl);
+
+        then:
+        assert HsqldbServerJdbcDriver.getServer().getPort() > ServerConstants.SC_DEFAULT_HSQL_SERVER_PORT
+
+        cleanup:
+        HsqldbServerJdbcDriver.stopServer();
+    }
 
 }

@@ -1,4 +1,4 @@
-HsqldbDriver for embedded server
+Hsqldb-driver for embedded server
 ================================
 
 Hsqldb-driver that start an embedded server instead of in-process db. The server is lazy initialized on
