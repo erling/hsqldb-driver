@@ -29,8 +29,7 @@ public class HsqldbServerJdbcDriver extends org.hsqldb.jdbcDriver {
             if (driverInstance != null) {
                 DriverManager.deregisterDriver(driverInstance);
             }
-            driverInstance = new HsqldbServerJdbcDriver();
-            DriverManager.registerDriver(driverInstance);
+            DriverManager.registerDriver(new HsqldbServerJdbcDriver());
         } catch (SQLException e) {
             // Ignored
         }
